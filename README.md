@@ -1,6 +1,6 @@
 ## Apex Piping
 
-Apex piping specific customization
+Apex customization
 
 #### License
 

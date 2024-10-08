@@ -1,7 +1,7 @@
 app_name = "nl_apex"
 app_title = "Apex Piping"
 app_publisher = "Navari Ltd"
-app_description = "Apex piping specific customization"
+app_description = "Apex customization"
 app_email = "mania@navari.co.ke"
 app_license = "agpl-3.0"
 # required_apps = []
