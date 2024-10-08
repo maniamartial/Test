@@ -3,7 +3,7 @@ name = "nl_apex"
 authors = [
     { name = "Navari Ltd", email = "mania@navari.co.ke"}
 ]
-description = "Specific apex customization"
+description = "Apex piping specific customization"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
