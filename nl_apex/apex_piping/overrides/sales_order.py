@@ -40,9 +40,13 @@ def check_credit_limit(
 	customer_total_so=get_customers_total_base_for_sales_order(customer) + doc.base_total
 	status="FAIL"
 
-	if customer_outstanding <= 0.0 and customer_total_so < credit_limit:
-		status="PASS"
-
+	if credit_limit > 0.0:
+		if customer_outstanding <= 0.0 and customer_total_so < credit_limit:
+			status="PASS"
+	else:
+		if customer_outstanding <= 0.0:
+			status="PASS"
+		
 	return status
 
 #calculate customer sales order base total
