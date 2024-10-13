@@ -17,6 +17,7 @@ doc_events = {
     
     "Sales Order": {
         "validate": "nl_apex.apex_piping.overrides.sales_order.validate",
+        # "on_update": "nl_apex.apex_piping.overrides.sales_order.update_custom_amount",
     },
     "Delivery Note":{
         "on_submit":"nl_apex.apex_piping.overrides.delivery_note.make_sales_invoice"
@@ -43,6 +44,8 @@ doc_events = {
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Sales Order" : "public/js/sales_order.js"}
+
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
