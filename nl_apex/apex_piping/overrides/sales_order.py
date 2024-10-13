@@ -51,6 +51,6 @@ def check_credit_limit(
 
 #calculate customer sales order base total
 def get_customers_total_base_for_sales_order(customer):
-    sales_orders = frappe.get_all("Sales Order", filters={"customer": customer, "docstatus":1}, fields=["base_total"])
-    total_base = sum([so["base_total"] for so in sales_orders])
-    return total_base
+	sales_orders = frappe.get_all("Sales Order", filters={"customer": customer, "docstatus":1}, fields=["base_total"])
+	total_base = sum([so["base_total"] for so in sales_orders])
+	return total_base
