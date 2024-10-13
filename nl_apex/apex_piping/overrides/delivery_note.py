@@ -112,20 +112,22 @@ def make_sales_invoice(doc, method=None):
     )
 
     # Include payment handling logic here
-    include_payment = False
+    # Only fetch payment information from one item linked to a sales order
+    sales_order = None
     for item in doc.items:
         if item.against_sales_order:
             sales_order = frappe.get_doc("Sales Order", item.against_sales_order)
-            if sales_order.custom_include_payment:
-                include_payment = True
-                add_payments_from_sales_order(sales_order, sales_invoice)
+            break  # Break after getting the first Sales Order
 
-    if include_payment:
-        sales_invoice.is_pos = 1
+    if sales_order and sales_order.custom_include_payment:
+        # Include payments from the Sales Order to the Sales Invoice
+        add_payments_from_sales_order(sales_order, sales_invoice)
+        sales_invoice.is_pos = 1  # Set POS flag
 
     if cint(frappe.db.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")):
         sales_invoice.set_payment_schedule()
-    # Save the Sales Invoice document after all changes
+
+    # Save and submit the Sales Invoice
     sales_invoice.save()
     sales_invoice.submit()
     frappe.msgprint(_("Sales Invoice {0} created successfully").format(sales_invoice.name))
