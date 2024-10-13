@@ -18,7 +18,11 @@ doc_events = {
     "Sales Order": {
         "validate": "nl_apex.apex_piping.overrides.sales_order.validate",
     },
+    "Delivery Note":{
+        "on_submit":"nl_apex.apex_piping.overrides.delivery_note.make_sales_invoice"
+    }
 }
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/nl_apex/css/nl_apex.css"
 # app_include_js = "/assets/nl_apex/js/nl_apex.js"
