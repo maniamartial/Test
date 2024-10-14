@@ -120,14 +120,11 @@ def make_sales_invoice(doc, method=None):
             break  # Break after getting the first Sales Order
 
     if sales_order and sales_order.custom_include_payment:
-        # Include payments from the Sales Order to the Sales Invoice
         add_payments_from_sales_order(sales_order, sales_invoice)
-        sales_invoice.is_pos = 1  # Set POS flag
-
+        sales_invoice.is_pos = 1 
     if cint(frappe.db.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")):
         sales_invoice.set_payment_schedule()
 
-    # Save and submit the Sales Invoice
     sales_invoice.save()
     sales_invoice.submit()
     frappe.msgprint(_("Sales Invoice {0} created successfully").format(sales_invoice.name))

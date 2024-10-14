@@ -4,9 +4,6 @@
 # import frappe
 
 
-# Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
 from collections import defaultdict
 
 import frappe
@@ -21,71 +18,50 @@ def execute(filters=None):
 	return columns, data
 
 
-# def get_data(report_filters):
-# 	fields = get_fields()
-# 	filters = get_filter_condition(report_filters)
-
-# 	wo_items = {}
-
-# 	work_orders = frappe.get_all("Work Order", filters=filters, fields=fields)
-# 	get_returned_materials(work_orders)
-
-# 	for d in work_orders:
-# 		d.extra_consumed_qty = 0.0
-# 		if d.consumed_qty and d.consumed_qty > d.required_qty:
-# 			d.extra_consumed_qty = d.consumed_qty - d.required_qty
-
-# 		if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
-# 			wo_items.setdefault((d.name, d.production_item), []).append(d)
-
-# 	data = []
-# 	for _key, wo_data in wo_items.items():
-# 		for index, row in enumerate(wo_data):
-# 			if index != 0:
-# 				# If one work order has multiple raw materials then show parent data in the first row only
-# 				for field in ["name", "status", "production_item", "qty", "produced_qty"]:
-# 					row[field] = ""
-
-# 			data.append(row)
-
-# 	return data
-
 def get_data(report_filters):
-    fields = get_fields()
-    filters = get_filter_condition(report_filters)
+	fields = get_fields()
+	filters = get_filter_condition(report_filters)
 
-    wo_items = {}
+	wo_items = {}
 
-    work_orders = frappe.get_all("Work Order", filters=filters, fields=fields)
-    
-    # Get returned and scrap materials
-    get_returned_materials(work_orders)
-    scrap_items_map = get_scrap_item_and_qty(work_orders)
+	work_orders = frappe.get_all("Work Order", filters=filters, fields=fields)
+	
+	# Get returned and scrap materials
+	get_returned_materials(work_orders)
+	scrap_items_map = get_scrap_item_and_qty(work_orders)
+	extra_items_map = get_extra_item_and_qty(work_orders)  # Get extra items here
 
-    for d in work_orders:
-        d.extra_consumed_qty = 0.0
-        if d.consumed_qty and d.consumed_qty > d.required_qty:
-            d.extra_consumed_qty = d.consumed_qty - d.required_qty
 
-        # Set scrap item and qty if available for the work order
-        scrap_data = scrap_items_map.get(d.name, {"scrap_item": "", "scrap_qty": 0.0})
-        d.scrap_item = scrap_data.get("scrap_item")
-        d.scrap_qty = scrap_data.get("scrap_qty")
+	for d in work_orders:
+		d.extra_consumed_qty = 0.0
+		if d.consumed_qty and d.consumed_qty > d.required_qty:
+			d.extra_consumed_qty = d.consumed_qty - d.required_qty
 
-        if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
-            wo_items.setdefault((d.name, d.production_item), []).append(d)
+		# Set scrap item and qty if available for the work order
+		scrap_data = scrap_items_map.get(d.name, {"scrap_item": "", "scrap_qty": 0.0})
+		d.scrap_item = scrap_data.get("scrap_item")
+		d.scrap_qty = scrap_data.get("scrap_qty")
+		
+		  # Set extra item and qty if available for the work order
+		extra_data = extra_items_map.get(d.name, {"extra_item": "", "extra_qty": 0.0})
+		d.extra_item = extra_data.get("extra_item")
+		d.extra_qty = extra_data.get("extra_qty")
+		d.extra_item_name = extra_data.get("extra_item_name")
 
-    data = []
-    for _key, wo_data in wo_items.items():
-        for index, row in enumerate(wo_data):
-            if index != 0:
-                # If one work order has multiple raw materials then show parent data in the first row only
-                for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty"]:
-                    row[field] = ""
+		if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
+			wo_items.setdefault((d.name, d.production_item), []).append(d)
 
-            data.append(row)
+	data = []
+	for _key, wo_data in wo_items.items():
+		for index, row in enumerate(wo_data):
+			if index != 0:
+				# If one work order has multiple raw materials then show parent data in the first row only
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name"]:
+					row[field] = ""
 
-    return data
+			data.append(row)
+
+	return data
 
 
 
@@ -151,18 +127,19 @@ def get_columns():
 			"options": "Work Order",
 			"width": 80,
 		},
+   
   {
-    "label": _("Scrap Item"),
-    "fieldname": "scrap_item",
-    "fieldtype": "Link",
-    "options": "Item",
-    "width": 150,
+	"label": _("Scrap Item"),
+	"fieldname": "scrap_item",
+	"fieldtype": "Link",
+	"options": "Item",
+	"width": 150,
 },
 {
-    "label": _("Scrap Qty"),
-    "fieldname": "scrap_qty",
-    "fieldtype": "Float",
-    "width": 100,
+	"label": _("Scrap Qty"),
+	"fieldname": "scrap_qty",
+	"fieldtype": "Float",
+	"width": 100,
 },
 		{"label": _("Status"), "fieldname": "status", "fieldtype": "Data", "width": 80},
 		{
@@ -209,66 +186,124 @@ def get_columns():
 			"fieldtype": "Float",
 			"width": 100,
 		},
+  {
+			"label": _("Extra Item"),
+			"fieldname": "extra_item",
+			"fieldtype": "Link",
+			"options": "Item",
+			"width": 150,
+		},
+  {
+	  "label": _("Extra Item Name"),
+		"fieldname": "extra_item_name",
+		"fieldtype": "Data",
+		"width": 100,
+  },
+		{
+			"label": _("Extra Qty"),
+			"fieldname": "extra_qty",
+			"fieldtype": "Float",
+			"width": 100,
+		},
   
-
+  
 	]
  
 def get_scrap_item_and_qty(work_orders):
-    # Fetch the scrap items related to the work orders
-    scrap_items = frappe.db.sql(
-        """
-        SELECT 
-            `tabStock Entry`.work_order,
-            `tabStock Entry Detail`.`item_code`, 
-            `tabStock Entry Detail`.`qty`
-        FROM 
-            `tabStock Entry`
-        LEFT JOIN 
-            `tabStock Entry Detail` 
-        ON 
-            `tabStock Entry Detail`.parent = `tabStock Entry`.name
-        WHERE 
-            `tabStock Entry`.`is_return` = 0
-            AND `tabStock Entry Detail`.`docstatus` = 1
-            AND `tabStock Entry`.`purpose` = 'Manufacture'
-            AND `tabStock Entry Detail`.`is_scrap_item` = 1
-            AND `tabStock Entry`.`work_order` IN %(work_orders)s
-        """, 
-        {"work_orders": [d.name for d in work_orders]}, as_dict=True
-    )
-    
-    scrap_item_qty_map = {}
-    for d in scrap_items:
-        scrap_item_qty_map[d.work_order] = {
-            "scrap_item": d.item_code,
-            "scrap_qty": d.qty
-        }
-    
-    return scrap_item_qty_map
-# def get_scrap_item_and_qty(work_orders):
-#     # Using the query builder to construct the query
-#     scrap_items = frappe.get_all(
-#         'Stock Entry Detail',
-#         fields=['item_code', 'qty'],
-#         filters={
-#             'parenttype': 'Stock Entry',
-#             'docstatus': 1,
-#             'is_scrap_item': 1,  # Corrected spelling here
-#             'parent': [
-#                 'in',
-#                 [se.name for se in frappe.get_all(
-#                     'Stock Entry',
-#                     filters={
-#                         'is_return': 0,
-#                         'purpose': 'Manufacture',
-#                         'work_order': ['in', work_orders]
-#                     },
-#                     fields=['name']
-#                 )]
-#             ]
-#         },
-#         order_by='docstatus asc, creation desc'
-#     )
+	# Fetch the scrap items related to the work orders
+	scrap_items = frappe.db.sql(
+		"""
+		SELECT 
+			`tabStock Entry`.work_order,
+			`tabStock Entry Detail`.`item_code`, 
+			`tabStock Entry Detail`.`qty`
+		FROM 
+			`tabStock Entry`
+		LEFT JOIN 
+			`tabStock Entry Detail` 
+		ON 
+			`tabStock Entry Detail`.parent = `tabStock Entry`.name
+		WHERE 
+			`tabStock Entry`.`is_return` = 0
+			AND `tabStock Entry Detail`.`docstatus` = 1
+			AND `tabStock Entry`.`purpose` = 'Manufacture'
+			AND `tabStock Entry Detail`.`is_scrap_item` = 1
+			AND `tabStock Entry`.`work_order` IN %(work_orders)s
+		""", 
+		{"work_orders": [d.name for d in work_orders]}, as_dict=True
+	)
+	
+	scrap_item_qty_map = {}
+	for d in scrap_items:
+		scrap_item_qty_map[d.work_order] = {
+			"scrap_item": d.item_code,
+			"scrap_qty": d.qty
+		}
+	
+	return scrap_item_qty_map
 
-#     return scrap_items
 
+def get_extra_item_and_qty(work_orders):
+	"""
+	Fetch extra items that are not part of BOM or scrap/finished items
+	for the given work orders.
+	"""
+	# Get BOM items for the work orders
+	bom_items = frappe.db.sql(
+		"""
+		SELECT 
+			`tabBOM Item`.item_code,
+			`tabWork Order`.name AS work_order
+		FROM 
+			`tabWork Order`
+		LEFT JOIN 
+			`tabBOM Item` ON `tabBOM Item`.parent = `tabWork Order`.bom_no
+		WHERE 
+			`tabWork Order`.name IN %(work_orders)s
+		""", 
+		{"work_orders": [d.name for d in work_orders]}, 
+		as_dict=True
+	)
+	
+	# Create a map of BOM items for quick lookup
+	bom_item_map = defaultdict(set)
+	for d in bom_items:
+		bom_item_map[d.work_order].add(d.item_code)
+
+	# Get Stock Entry items and compare with BOM items
+	stock_entry_items = frappe.db.sql(
+		"""
+		SELECT 
+			`tabStock Entry`.work_order,
+			`tabStock Entry Detail`.`item_code`, 
+			`tabStock Entry Detail`.`item_name`, 
+			`tabStock Entry Detail`.`qty`
+		FROM 
+			`tabStock Entry`
+		LEFT JOIN 
+			`tabStock Entry Detail` 
+		ON 
+			`tabStock Entry Detail`.parent = `tabStock Entry`.name
+		WHERE 
+			`tabStock Entry`.`is_return` = 0
+			AND `tabStock Entry Detail`.`docstatus` = 1
+			AND `tabStock Entry Detail`.`is_finished_item` = 0
+   AND `tabStock Entry Detail`.`is_scrap_item` = 0
+			AND `tabStock Entry`.`purpose` = 'Manufacture'
+			AND `tabStock Entry`.`work_order` IN %(work_orders)s
+		""", 
+		{"work_orders": [d.name for d in work_orders]}, 
+		as_dict=True
+	)
+	# frappe.throw(str(bom_item_map[d.work_order]))
+	# Identify extra items by excluding those present in BOM
+	extra_item_qty_map = {}
+	for d in stock_entry_items:
+		if d.item_code not in bom_item_map[d.work_order]:
+			extra_item_qty_map[d.work_order] = {
+				"extra_item": d.item_code,
+				"extra_qty": d.qty,
+				"extra_item_name": d.item_name
+			}
+	# frappe.throw(str(extra_item_qty_map))
+	return extra_item_qty_map
