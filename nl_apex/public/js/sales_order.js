@@ -17,3 +17,12 @@ function update_custom_amount(frm) {
 
     frm.set_value('custom_amount_paid', total_amount);
 }
+
+// frappe.ui.form.on('Sales Order', {
+//     refresh(frm) {
+//         setTimeout(() => {
+//             // Hide 'Delivery Note' button in the 'Create' dropdown
+//             frm.remove_custom_button('Delivery Note', 'Create');
+//         }, 10);
+//     }
+// });
