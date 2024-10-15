@@ -119,7 +119,7 @@ def make_sales_invoice(doc, method=None):
             sales_order = frappe.get_doc("Sales Order", item.against_sales_order)
             break  # Break after getting the first Sales Order
 
-    if sales_order and sales_order.custom_include_payment:
+    if sales_order and sales_order.custom_sales_type=="Cash":
         add_payments_from_sales_order(sales_order, sales_invoice)
         sales_invoice.is_pos = 1 
     if cint(frappe.db.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")):
