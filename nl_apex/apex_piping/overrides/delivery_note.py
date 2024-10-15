@@ -5,6 +5,8 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import cint, flt
 from erpnext.controllers.accounts_controller import merge_taxes
 from erpnext.stock.doctype.serial_no.serial_no import get_delivery_note_serial_no
+from frappe.model.document import Document
+from frappe.query_builder import DocType
 
 
 @frappe.whitelist()
@@ -91,6 +93,7 @@ def make_sales_invoice(doc, method=None):
                     "against_sales_order": "sales_order",
                     "serial_no": "serial_no",
                     "cost_center": "cost_center",
+                    "custom_delivery_note_no":"custom_delivery_note_no",
                 },
                 "postprocess": update_item,
                 "filter": lambda d: get_pending_qty(d) <= 0
@@ -173,3 +176,33 @@ def get_invoiced_qty_map(delivery_note):
     ):
         invoiced_qty_map[dn_detail] = invoiced_qty_map.get(dn_detail, 0) + qty
     return invoiced_qty_map
+
+# @frappe.whitelist(allow_guest=True)
+# def get_series(prefix, digits):
+#     series = DocType("Series")
+#     current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
+
+#     if current and current[0][0] is not None:
+#         current = current[0][0]
+#         # yes, update it
+#         frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (prefix,))
+#         current = cint(current) + 1
+#     else:
+#         # no, create it
+#         frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (prefix,))
+#         current = 1
+    
+#     return ("%0" + str(digits) + "d") % current
+
+@frappe.whitelist(allow_guest=True)
+def get_series(doc_name):
+    delivery_note = frappe.get_doc("Delivery Note", doc_name)
+    
+    # Assuming the Delivery Note name starts with "DN-", remove the "DN-" part and return only the number
+    if delivery_note.name.startswith("DN-"):
+        number_part = delivery_note.name.replace("DN-", "")
+    else:
+        # In case it doesn't have the "DN-" prefix, return the full name
+        number_part = delivery_note.name
+    
+    return number_part
