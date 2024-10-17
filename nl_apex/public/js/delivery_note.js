@@ -9,7 +9,7 @@ frappe.ui.form.on('Delivery Note', {
                 callback: function(r) {
                     if (r.message) {
                         frm.set_value('custom_delivery_note_no', r.message); 
-                        frm.save() // Replace with your custom field name
+                        frm.save();
                     }
                 }
             });
