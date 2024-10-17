@@ -165,7 +165,6 @@ def get_returned_qty_map(delivery_note):
     )
     return returned_qty_map
 
-
 def get_invoiced_qty_map(delivery_note):
     """Returns a map: {dn_detail: invoiced_qty}"""
     invoiced_qty_map = frappe._dict()

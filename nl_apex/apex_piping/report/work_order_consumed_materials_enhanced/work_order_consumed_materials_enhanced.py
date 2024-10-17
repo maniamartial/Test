@@ -41,15 +41,19 @@ def get_data(report_filters):
 		scrap_data = scrap_items_map.get(d.name, {"scrap_item": "", "scrap_qty": 0.0})
 		d.scrap_item = scrap_data.get("scrap_item")
 		d.scrap_qty = scrap_data.get("scrap_qty")
-		
-		  # Set extra item and qty if available for the work order
+
+		# Set extra item and qty if available for the work order
 		extra_data = extra_items_map.get(d.name, {"extra_item": "", "extra_qty": 0.0})
 		d.extra_item = extra_data.get("extra_item")
 		d.extra_qty = extra_data.get("extra_qty")
 		d.extra_item_name = extra_data.get("extra_item_name")
 
+		# Calculate saving_qty: the difference between transferred and consumed quantity
+		d.saving_qty = d.transferred_qty - d.consumed_qty if d.transferred_qty and d.consumed_qty else 0.0
+
 		if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
 			wo_items.setdefault((d.name, d.production_item), []).append(d)
+
 
 	data = []
 	for _key, wo_data in wo_items.items():
@@ -175,7 +179,7 @@ def get_columns():
 		},
   {
 	  "label": _("Saving Qty"),
-		"fieldname": "returned_qty",
+		"fieldname": "saving_qty",
 		"fieldtype": "Float",
 		"width": 100,
   
