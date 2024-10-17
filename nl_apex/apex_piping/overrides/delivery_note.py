@@ -13,7 +13,8 @@ from frappe.query_builder import DocType
 def make_sales_invoice(doc, method=None):
     # Fetch the delivery note
     doc = frappe.get_doc("Delivery Note", doc.name)
-    
+    if not doc.custom_delivery_note_no:
+        order_no_generated(doc.name)
     # Check if a Sales Invoice already exists for this Delivery Note
     existing_invoices = frappe.get_all(
         "Sales Invoice",
@@ -176,22 +177,6 @@ def get_invoiced_qty_map(delivery_note):
         invoiced_qty_map[dn_detail] = invoiced_qty_map.get(dn_detail, 0) + qty
     return invoiced_qty_map
 
-# @frappe.whitelist(allow_guest=True)
-# def get_series(prefix, digits):
-#     series = DocType("Series")
-#     current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
-
-#     if current and current[0][0] is not None:
-#         current = current[0][0]
-#         # yes, update it
-#         frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (prefix,))
-#         current = cint(current) + 1
-#     else:
-#         # no, create it
-#         frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (prefix,))
-#         current = 1
-    
-#     return ("%0" + str(digits) + "d") % current
 
 @frappe.whitelist(allow_guest=True)
 def get_series(doc_name):
@@ -201,7 +186,10 @@ def get_series(doc_name):
     if delivery_note.name.startswith("DN-"):
         number_part = delivery_note.name.replace("DN-", "")
     else:
-        # In case it doesn't have the "DN-" prefix, return the full name
         number_part = delivery_note.name
     
     return number_part
+
+def order_no_generated(doc_name):
+    series=get_series(doc_name)
+    frappe.db.set_value("Delivery Note",doc_name,"custom_delivery_note_no",series)

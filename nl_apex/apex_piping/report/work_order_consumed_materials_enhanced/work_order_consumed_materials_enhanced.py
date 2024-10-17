@@ -54,7 +54,6 @@ def get_data(report_filters):
 		if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
 			wo_items.setdefault((d.name, d.production_item), []).append(d)
 
-
 	data = []
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
