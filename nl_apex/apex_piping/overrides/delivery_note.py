@@ -95,6 +95,8 @@ def make_sales_invoice(doc, method=None):
                     "serial_no": "serial_no",
                     "cost_center": "cost_center",
                     "custom_delivery_note_no":"custom_delivery_note_no",
+                    "custom_tax_rate":"custom_tax_rate",
+                    "custom_tax_amount":"custom_tax_amount",
                 },
                 "postprocess": update_item,
                 "filter": lambda d: get_pending_qty(d) <= 0
