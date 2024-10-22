@@ -6,6 +6,8 @@ app_email = "mania@navari.co.ke"
 app_license = "agpl-3.0"
 # required_apps = []
 
+
+
 # Includes in <head>
 # ------------------
 doc_events = {
@@ -17,6 +19,7 @@ doc_events = {
     
     "Sales Order": {
         "validate": "nl_apex.apex_piping.overrides.sales_order.validate",
+        "before_submit":"nl_apex.apex_piping.overrides.sales_order.before_submit"
         # "on_update": "nl_apex.apex_piping.overrides.sales_order.update_custom_amount",
     },
     "Delivery Note":{
