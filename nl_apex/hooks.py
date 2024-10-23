@@ -19,7 +19,7 @@ doc_events = {
     
     "Sales Order": {
         "validate": "nl_apex.apex_piping.overrides.sales_order.validate",
-        "before_submit":"nl_apex.apex_piping.overrides.sales_order.before_submit"
+        "before_save":"nl_apex.apex_piping.overrides.sales_order.before_submit"
     },
     "Delivery Note":{
         "on_submit":"nl_apex.apex_piping.overrides.delivery_note.make_sales_invoice"
