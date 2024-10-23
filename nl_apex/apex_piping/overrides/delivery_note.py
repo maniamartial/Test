@@ -150,8 +150,12 @@ def add_payments_from_sales_order(sales_order, sales_invoice):
         sales_invoice.append("payments", {
             "mode_of_payment": payment.mode_of_payment,
             "amount": payment.amount,
+            "reference_no":payment.reference_no,
+            "type":payment.type,
+            "clearance_date":payment.clearance_date,
+            "account":payment.account,
+            "default":payment.default,
         })
-
 
 def get_returned_qty_map(delivery_note):
     """Returns a map: {dn_detail: returned_qty}"""
