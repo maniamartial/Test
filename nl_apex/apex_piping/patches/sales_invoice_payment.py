@@ -18,7 +18,7 @@ def execute():
             
             # Update the payments table with missing fields
             for payment in sales_order.custom_order_payment:
-                payment_entry = next((p for p in sales_invoice.payments if p.mode_of_payment == payment.mode_of_payment), None)
+                payment_entry = next((p for p in sales_invoice.payments if p.mode_of_payment == payment.mode_of_payment and p.amount == payment.amount), None)
                 
                 if payment_entry:
                     # Use set_value to update each field to bypass the save validation
