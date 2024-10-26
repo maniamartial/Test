@@ -127,10 +127,9 @@ function calculate_total_gross_profit(frm) {
 
 }
 
-
 // Utility function to calculate gross profit percentage for a row
 function calculate_gross_profit_percentage(row) {
-    let gross_profit = (row.rate - row.valuation_rate) * row.qty;
+    let gross_profit = row.gross_profit;
     row.custom_gross_profit_percentage = (gross_profit === 0 || row.custom_valuation_amount <= 0) ? 0 : (flt(gross_profit) / flt(row.custom_valuation_amount)) * 100;
 }
 
