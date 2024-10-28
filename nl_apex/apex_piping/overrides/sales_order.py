@@ -78,8 +78,9 @@ def calculate_gross_profit(doc):
 	doc.custom_gross_profit_ = total_gross_profit_percentage / number_of_items
 	doc.custom_gross_proft = total_gross_profit
  
-def before_submit(doc, method=None):
+def before_save(doc, method=None):
 	calculate_gross_profit(doc)
+ 
  
 @frappe.whitelist(allow_guest=True)
 def invoices_payment_due_validation():
