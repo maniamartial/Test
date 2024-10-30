@@ -13,6 +13,8 @@ from frappe.query_builder import DocType
 def make_sales_invoice(doc, method=None):
     # Fetch the delivery note
     doc = frappe.get_doc("Delivery Note", doc.name)
+    if doc.is_return:
+        return
     if not doc.custom_delivery_note_no:
         order_no_generated(doc.name)
     # Check if a Sales Invoice already exists for this Delivery Note
