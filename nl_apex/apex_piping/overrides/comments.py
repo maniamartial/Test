@@ -22,4 +22,3 @@ def get_update_approver(doc, method=None):
         if sales_order.docstatus == 1:
             frappe.set_value(reference_doctype, doc.reference_name, "custom_approver", full_name)
 
-		
