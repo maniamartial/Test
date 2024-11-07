@@ -42,7 +42,7 @@ def get_price_list_rate(item_code, price_list, customer):
             "price_list": price_list,
         },
         "price_list_rate",
-        order_by="modified desc"  # Fetch the latest price list rate
+        order_by="modified desc" 
     )
     # Set the response message and return the latest price or 0 if not found
     frappe.response.message = item_price if item_price else 0
