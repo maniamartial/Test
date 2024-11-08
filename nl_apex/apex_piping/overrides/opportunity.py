@@ -31,7 +31,6 @@ def get_price_list_rate(item_code, price_list, customer):
 
     # If a valid customer-specific price is found, return it
     if item_price:
-        frappe.throw(str(item_price))
         frappe.response.message = item_price
         return item_price  
     # If no item price was found for the customer, fetch the latest price list rate
