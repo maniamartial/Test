@@ -57,6 +57,23 @@ frappe.query_reports["Work Order Consumed Materials Enhanced"] = {
 			fieldname: "show_extra_consumed_materials",
 			fieldtype: "Check",
 		},
+		{
+			label: __("Machine"),
+			fieldname: "machine",
+			fieldtype: "Link",
+			options: "Machine",
+		},
+		{
+			label: __("Shift"),
+			fieldname: "shift",
+			fieldtype: "Link",
+			options: "Shift",
+		},{
+			label: __("Employee"),
+			fieldname: "employee",
+			fieldtype: "Link",
+			options: "Employee",
+		}
 	],
 	formatter: function (value, row, column, data, default_formatter) {
 		value = default_formatter(value, row, column, data);
