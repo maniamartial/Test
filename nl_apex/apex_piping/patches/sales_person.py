@@ -2,6 +2,7 @@
 import frappe
 from frappe.query_builder import DocType
 
+'''Update missing sales person with doc owner'''
 def execute():
     SalesOrder = DocType("Sales Order")
     SalesTeam = DocType("Sales Team")
