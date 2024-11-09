@@ -29,8 +29,7 @@ def get_data(report_filters):
 	for d in work_orders:
 		d.machine = machine_map.get(d.name, "")
 		employee_shift_data = employee_shift_map.get(d.name, {"employees":[], "custom_shift": ""})
-		# d.employee = employee_shift_data["employees"]
-		d.employee = ", ".join(employee_shift_data["employees"]) if employee_shift_data["employees"] else ""
+		d.employee = ", ".join(set(employee_shift_data["employees"]))
 		d.custom_shift = employee_shift_data["custom_shift"]
   
 	# Get returned and scrap materials
@@ -75,12 +74,10 @@ def get_data(report_filters):
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
 			if index != 0:
-				# If one work order has multiple raw materials then show parent data in the first row only
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","shift"]:
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift"]:
 					row[field] = ""
 
 			data.append(row)
-	# frappe.throw(str(data))
 	return data
 
 def get_returned_materials(work_orders):
@@ -392,32 +389,6 @@ def get_extra_item_and_qty(work_orders):
 	# frappe.throw(str(extra_item_qty_map))
 	return extra_item_qty_map
 
-# def get_employee_shift_map(work_orders):
-# 	"""
-# 	Fetches employee and shift details for each work order based on related Job Cards.
-# 	"""
-# 	employee_shift_map = {}
-# 	work_order_names = [d.name for d in work_orders]
-# 	job_card_data = frappe.db.sql(
-# 		"""
-# 		SELECT 
-# 			work_order,
-# 			employee,
-# 			custom_shift
-# 		FROM `tabJob Card`
-# 		WHERE work_order IN %(work_orders)s
-# 		""",
-# 		{"work_orders": work_order_names},
-# 		as_dict=True,
-# 	)
-# 	frappe.throw("Here")
-# 	for entry in job_card_data:
-# 		employee_shift_map[entry.work_order] = {
-# 			"employee": entry.employee,
-# 			"custom_shift": entry.custom_shift
-# 		}
-
-# 	return employee_shift_map
 
 def get_employee_shift_map(work_orders):
 	"""
@@ -449,4 +420,5 @@ def get_employee_shift_map(work_orders):
 			}
 		employee_shift_map[entry.work_order]["employees"].append(entry.employee)
 	return employee_shift_map
+
 
