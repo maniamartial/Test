@@ -29,7 +29,8 @@ def get_data(report_filters):
 	for d in work_orders:
 		d.machine = machine_map.get(d.name, "")
 		employee_shift_data = employee_shift_map.get(d.name, {"employees":[], "custom_shift": ""})
-		d.employee = ", ".join(set(employee_shift_data["employees"]))
+		'''Just to make sure that the employee field is not empty'''
+		d.employee = ", ".join({str(emp) for emp in employee_shift_data["employees"] if emp is not None})
 		d.custom_shift = employee_shift_data["custom_shift"]
   
 	# Get returned and scrap materials
