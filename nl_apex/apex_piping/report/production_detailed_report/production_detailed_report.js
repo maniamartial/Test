@@ -1,7 +1,7 @@
 // Copyright (c) 2024, Navari Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Work Order Consumed Materials Enhanced"] = {
+frappe.query_reports["Production Detailed Report"] = {
 
 	filters: [
 		{
@@ -56,6 +56,23 @@ frappe.query_reports["Work Order Consumed Materials Enhanced"] = {
 			label: __("Excess Materials Consumed"),
 			fieldname: "show_extra_consumed_materials",
 			fieldtype: "Check",
+		},
+		{
+			label: __("Machine"),
+			fieldname: "machine",
+			fieldtype: "Link",
+			options: "Workstation",
+		},
+		{
+			label: __("Shift"),
+			fieldname: "shift",
+			fieldtype: "Link",
+			options: "Shift Type",
+		},{
+			label: __("Employee"),
+			fieldname: "employee",
+			fieldtype: "Link",
+			options: "Employee",
 		}
 	],
 	formatter: function (value, row, column, data, default_formatter) {

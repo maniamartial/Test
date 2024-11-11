@@ -1,6 +1,9 @@
 # Copyright (c) 2024, Navari Ltd and contributors
 # For license information, please see license.txt
 
+# import frappe
+
+
 from collections import defaultdict
 
 import frappe
@@ -22,19 +25,11 @@ def get_data(report_filters):
 	wo_items = {}
 
 	work_orders = frappe.get_all("Work Order", filters=filters, fields=fields)
-	
-	#Map machine to work orders
-	machine_map = get_machine_map(work_orders)
-	employee_shift_map = get_employee_shift_map(work_orders)
-	for d in work_orders:
-		d.machine = machine_map.get(d.name, "")
-		employee_shift_data = employee_shift_map.get(d.name, {"employees":[], "custom_shift": ""})
-		'''Just to make sure that the employee field is not empty'''
-		d.employee = ", ".join({str(emp) for emp in employee_shift_data["employees"] if emp is not None})
-		d.custom_shift = employee_shift_data["custom_shift"]
-  
+	if not work_orders:
+		return {}
 	# Get returned and scrap materials
 	get_returned_materials(work_orders)
+	# frappe.throw(str(work_orders))
 	scrap_items_map = get_scrap_item_and_qty(work_orders)
 	extra_items_map = get_extra_item_and_qty(work_orders)  # Get extra items here
 
@@ -58,16 +53,6 @@ def get_data(report_filters):
 		# Calculate saving_qty: the difference between transferred and consumed quantity
 		d.saving_qty = d.transferred_qty - d.consumed_qty if d.transferred_qty and d.consumed_qty else 0.0
 
-		# Calculate amount: valuation rate * consumed qty
-		d.amount=(d.valuation_rate * d.consumed_qty) if d.valuation_rate and d.consumed_qty else 0.0
-  
-  
-		# Calculate scrap percentage: (scrap_qty / produced_qty) * 100
-		if d.produced_qty:
-			d.scrap_percentage = (d.scrap_qty / d.produced_qty) * 100
-		else:
-			d.scrap_percentage = 0.0
-			
 		if d.extra_consumed_qty or not report_filters.show_extra_consumed_materials:
 			wo_items.setdefault((d.name, d.production_item), []).append(d)
 
@@ -75,11 +60,15 @@ def get_data(report_filters):
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
 			if index != 0:
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift"]:
+				# If one work order has multiple raw materials then show parent data in the first row only
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name"]:
 					row[field] = ""
 
 			data.append(row)
+
 	return data
+
+
 
 def get_returned_materials(work_orders):
 	raw_materials_qty = defaultdict(float)
@@ -110,40 +99,12 @@ def get_fields():
 		"`tabWork Order Item`.`required_qty`",
 		"`tabWork Order Item`.`transferred_qty`",
 		"`tabWork Order Item`.`consumed_qty`",
-		"`tabWork Order Item`.`rate` as valuation_rate" , #Added this rate from work order items
 		"`tabWork Order`.`status`",
 		"`tabWork Order`.`name`",
 		"`tabWork Order`.`production_item`",
 		"`tabWork Order`.`qty`",
 		"`tabWork Order`.`produced_qty`",
-		"`tabWork Order Operation`.`parent`",
-  		"`tabWork Order Operation`.`workstation` as machine",
-
 	]
-
-def get_machine_map(work_orders):
-	"""
-	Fetches machine (workstation) details for each work order.
-	"""
-	machine_map = {}
-	work_order_names = [d.name for d in work_orders]
-
-	workstation_data = frappe.db.sql(
-		"""
-		SELECT 
-			parent as work_order,
-			workstation
-		FROM `tabWork Order Operation`
-		WHERE parent IN %(work_orders)s
-		""",
-		{"work_orders": work_order_names},
-		as_dict=True,
-	)
-
-	for entry in workstation_data:
-		machine_map[entry.work_order] = entry.workstation
-
-	return machine_map
 
 
 def get_filter_condition(report_filters):
@@ -249,53 +210,19 @@ def get_columns():
 			"fieldtype": "Float",
 			"width": 100,
 		},
-  
-		{
-			"label": _("Valuation Rate"),
-			"fieldname": "valuation_rate",
-			"fieldtype": "Currency",
-			"width": 100,
-		},
-		{
-			"label": _("Amount"),# Amount = Valuation Rate * Consumed Qty
-			"fieldname": "amount",
-			"fieldtype": "Currency",
-			"width": 100,
-		},
-  {
-	  "label": _("Scrap(%)"),
-		"fieldname": "scrap_percentage",
-		"fieldtype": "Percentage",
-		"width": 100,
-  
-  },
-  {
-	  "label": _("Machine"),
-		"fieldname": "machine",
-		"fieldtype": "Link",
-		"options": "Workstation",
-		"width": 100,
-  },
-  {
-  "label": _("Employee"),
-  "fieldname":"employee",
-  "fieldtype":"Link",
-  "options":"Employee",
-  "width":100
-  },
-  {
-	  "label":_("Shift"),
-		"fieldname":"custom_shift",
-		"fieldtype":"Link",
-		"options":"Shift Type"
-  }
-  
 	]
- 
+
+
 def get_scrap_item_and_qty(work_orders):
-	# Fetch the scrap items related to the work orders
-	scrap_items = frappe.db.sql(
-		"""
+
+	# if work_orders is None or work_orders ==[]:
+	# 	frappe.throw(str("No such order within specified duration"))
+	# 	return {}
+
+	# Extract work order names into a list for query parameters
+	work_order_names = [wo.get("name") for wo in work_orders]
+	# Modify the query to use a placeholder for the list of work orders
+	query = """
 		SELECT 
 			`tabStock Entry`.work_order,
 			`tabStock Entry Detail`.`item_code`, 
@@ -311,19 +238,22 @@ def get_scrap_item_and_qty(work_orders):
 			AND `tabStock Entry Detail`.`docstatus` = 1
 			AND `tabStock Entry`.`purpose` = 'Manufacture'
 			AND `tabStock Entry Detail`.`is_scrap_item` = 1
-			AND `tabStock Entry`.`work_order` IN %(work_orders)s
-		""", 
-		{"work_orders": [d.name for d in work_orders]}, as_dict=True
-	)
-	
-	scrap_item_qty_map = {}
-	for d in scrap_items:
-		scrap_item_qty_map[d.work_order] = {
-			"scrap_item": d.item_code,
-			"scrap_qty": d.qty
+			AND `tabStock Entry`.`work_order` IN %s
+	"""
+
+	# Execute query with the tuple of work order names
+	scrap_items = frappe.db.sql(query, (tuple(work_order_names),), as_dict=True)
+
+	scrap_items_map = {}
+	for item in scrap_items:
+		scrap_items_map[item.work_order] = {
+			"scrap_item": item.item_code,
+			"scrap_qty": item.qty
 		}
-	
-	return scrap_item_qty_map
+
+	return scrap_items_map
+
+
 
 
 def get_extra_item_and_qty(work_orders):
@@ -378,6 +308,7 @@ def get_extra_item_and_qty(work_orders):
 		{"work_orders": [d.name for d in work_orders]}, 
 		as_dict=True
 	)
+
 	# Identify extra items by excluding those present in BOM
 	extra_item_qty_map = {}
 	for d in stock_entry_items:
@@ -387,39 +318,4 @@ def get_extra_item_and_qty(work_orders):
 				"extra_qty": d.qty,
 				"extra_item_name": d.item_name
 			}
-	# frappe.throw(str(extra_item_qty_map))
 	return extra_item_qty_map
-
-
-def get_employee_shift_map(work_orders):
-	"""
-	Fetches employee and shift details for each work order based on related Job Cards.
-	"""
-	employee_shift_map = {}
-	work_order_names = [d.name for d in work_orders]
-
-	# Fetch employee and shift data from the child table
-	job_card_data = frappe.db.sql(
-		"""
-		SELECT 
-			jc.work_order,
-			jce.employee,
-			jc.custom_shift
-		FROM `tabJob Card` jc
-		JOIN `tabJob Card Time Log` jce ON jce.parent = jc.name
-		WHERE jc.work_order IN %(work_orders)s
-		""",
-		{"work_orders": work_order_names},
-		as_dict=True,
-	)
-
-	for entry in job_card_data:
-		if entry.work_order not in employee_shift_map:
-			employee_shift_map[entry.work_order] = {
-				"employees": [],
-				"custom_shift": entry.custom_shift
-			}
-		employee_shift_map[entry.work_order]["employees"].append(entry.employee)
-	return employee_shift_map
-
-
