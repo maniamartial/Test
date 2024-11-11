@@ -322,9 +322,8 @@ def get_columns():
 	  "label":_("Total Consumed QTY"),
 		"fieldname":"total_consumed_qty",
 		"fieldtype":"float",
-  
+		"hidden":1
   }
-  
 	]
  
 def get_scrap_item_and_qty(work_orders):
@@ -601,7 +600,6 @@ def get_custom_total_weight(work_orders):
 
     # Map the weight data to each work order
     for entry in weight_data:
-        # Use custom_total_weight_in_kgs if it's not None, otherwise use qty
         weight = entry['custom_total_weight_in_kgs'] if entry['custom_total_weight_in_kgs'] is not None else entry['qty']
         custom_weight_map[entry['work_order']] = weight
 
