@@ -8,7 +8,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _
-
+from ..production_detailed_report.production_detailed_report import get_custom_total_weight
 
 def execute(filters=None):
 	columns, data = [], []
@@ -29,7 +29,7 @@ def get_data(report_filters):
 		return {}
 	# Get returned and scrap materials
 	get_returned_materials(work_orders)
-	# frappe.throw(str(work_orders))
+	get_custom_total_weight(work_orders)
 	scrap_items_map = get_scrap_item_and_qty(work_orders)
 	extra_items_map = get_extra_item_and_qty(work_orders)  # Get extra items here
 
@@ -61,7 +61,7 @@ def get_data(report_filters):
 		for index, row in enumerate(wo_data):
 			if index != 0:
 				# If one work order has multiple raw materials then show parent data in the first row only
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name"]:
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","custom_total_weight_in_kgs"]:
 					row[field] = ""
 
 			data.append(row)
@@ -156,6 +156,8 @@ def get_columns():
 		},
 		{"label": _("Qty to Produce"), "fieldname": "qty", "fieldtype": "Float", "width": 120},
 		{"label": _("Produced Qty"), "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
+  		{"label": _("Produced Kgs"), "fieldname": "custom_total_weight_in_kgs", "fieldtype": "Float", "width": 110},
+
 		{
 			"label": _("Raw Material Item"),
 			"fieldname": "raw_material_item_code",
@@ -214,10 +216,6 @@ def get_columns():
 
 
 def get_scrap_item_and_qty(work_orders):
-
-	# if work_orders is None or work_orders ==[]:
-	# 	frappe.throw(str("No such order within specified duration"))
-	# 	return {}
 
 	# Extract work order names into a list for query parameters
 	work_order_names = [wo.get("name") for wo in work_orders]
