@@ -39,6 +39,7 @@ def get_data(report_filters):
   
 	# Get returned and scrap materials
 	get_returned_materials(work_orders)
+	get_custom_total_weight(work_orders)
 	scrap_items_map = get_scrap_item_and_qty(work_orders)
 	extra_items_map = get_extra_item_and_qty(work_orders)  # Get extra items here
 
@@ -82,7 +83,7 @@ def get_data(report_filters):
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
 			if index != 0:
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage"]:
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage","custom_total_weight_in_kgs"]:
 					row[field] = ""
 
 			data.append(row)
@@ -213,7 +214,8 @@ def get_columns():
   {
 	  "label": _("Scrap(%)"),
 		"fieldname": "scrap_percentage",
-		"fieldtype": "Percentage",
+		"fieldtype": "Float",
+		"precision": 2,
 		"width": 100,
   
   },
@@ -227,6 +229,7 @@ def get_columns():
 		},
 		{"label": _("Qty to Produce"), "fieldname": "qty", "fieldtype": "Float", "width": 120},
 		{"label": _("Produced Qty"), "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
+		{"label": _("Produced Kgs"), "fieldname": "custom_total_weight_in_kgs", "fieldtype": "Float", "width": 110},
 		{
 			"label": _("Raw Material Item"),
 			"fieldname": "raw_material_item_code",
@@ -398,7 +401,9 @@ def get_extra_item_and_qty(work_orders):
 			`tabStock Entry`.work_order,
 			`tabStock Entry Detail`.`item_code`, 
 			`tabStock Entry Detail`.`item_name`, 
-			`tabStock Entry Detail`.`qty`
+			`tabStock Entry Detail`.`qty`,
+   			`tabStock Entry Detail`.`custom_total_weight_in_kgs`
+			
 		FROM 
 			`tabStock Entry`
 		LEFT JOIN 
@@ -543,19 +548,63 @@ def get_filtered_work_orders(work_orders, filters):
 
 
 def calculate_total_consumed_qty(work_order_name):
+	"""
+	This function calculates the total consumed quantity for a given work order.
+	
+	:param work_order_name: Name of the work order to calculate the total consumed quantity for.
+	:return: Total consumed quantity for the given work order.
+	"""
+	total_consumed_qty = 0.0
+
+	# Fetch all items related to this work order
+	work_order_items = frappe.get_all("Work Order Item", filters={"parent": work_order_name}, fields=["consumed_qty"])
+
+	for item in work_order_items:
+		if item.consumed_qty:
+			total_consumed_qty += item.consumed_qty
+
+	return total_consumed_qty
+
+
+def get_custom_total_weight(work_orders):
     """
-    This function calculates the total consumed quantity for a given work order.
-    
-    :param work_order_name: Name of the work order to calculate the total consumed quantity for.
-    :return: Total consumed quantity for the given work order.
+    Fetches the custom total weight in kgs for each work order item
+    from the Stock Entry Detail table and maps it to the work order.
+    If custom_total_weight_in_kgs is None, it uses qty instead.
     """
-    total_consumed_qty = 0.0
+    custom_weight_map = {}
 
-    # Fetch all items related to this work order
-    work_order_items = frappe.get_all("Work Order Item", filters={"parent": work_order_name}, fields=["consumed_qty"])
+    # Get work order names
+    work_order_names = [d.name for d in work_orders]
 
-    for item in work_order_items:
-        if item.consumed_qty:
-            total_consumed_qty += item.consumed_qty
+    # Fetch the custom total weight in kgs for each stock entry related to the work orders
+    weight_data = frappe.db.sql("""
+        SELECT 
+            `tabStock Entry`.work_order,
+            `tabStock Entry Detail`.item_code, 
+            `tabStock Entry Detail`.qty,
+            `tabStock Entry Detail`.custom_total_weight_in_kgs
+        FROM 
+            `tabStock Entry`
+        LEFT JOIN 
+            `tabStock Entry Detail` 
+        ON 
+            `tabStock Entry Detail`.parent = `tabStock Entry`.name
+        WHERE 
+            `tabStock Entry`.is_return = 0
+            AND `tabStock Entry Detail`.docstatus = 1
+            AND `tabStock Entry Detail`.is_finished_item = 1
+            AND `tabStock Entry Detail`.is_scrap_item = 0
+            AND `tabStock Entry`.purpose = 'Manufacture'
+            AND `tabStock Entry`.work_order IN %(work_orders)s
+    """, {"work_orders": work_order_names}, as_dict=True)
 
-    return total_consumed_qty
+    # Map the weight data to each work order
+    for entry in weight_data:
+        # Use custom_total_weight_in_kgs if it's not None, otherwise use qty
+        weight = entry['custom_total_weight_in_kgs'] if entry['custom_total_weight_in_kgs'] is not None else entry['qty']
+        custom_weight_map[entry['work_order']] = weight
+
+    # Add the custom weight to each work order item in the work_orders list
+    for row in work_orders:
+        row.custom_total_weight_in_kgs = custom_weight_map.get(row.name, 0.0)
