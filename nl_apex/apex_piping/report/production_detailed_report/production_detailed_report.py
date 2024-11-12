@@ -6,7 +6,6 @@ from collections import defaultdict
 import frappe
 from frappe import _
 
-
 def execute(filters=None):
 	columns, data = [], []
 	columns = get_columns()
@@ -53,9 +52,10 @@ def get_data(report_filters):
 			d.extra_consumed_qty = d.consumed_qty - d.required_qty
 
 		# Set scrap item and qty if available for the work order
-		scrap_data = scrap_items_map.get(d.name, {"scrap_item": "", "scrap_qty": 0.0})
+		scrap_data = scrap_items_map.get(d.name, {"scrap_item": "", "scrap_qty": 0.0, "scrap_rate":0.0})
 		d.scrap_item = scrap_data.get("scrap_item")
 		d.scrap_qty = scrap_data.get("scrap_qty")
+		d.scrap_rate = scrap_data.get("scrap_rate")
 
 		# Set extra item and qty if available for the work order
 		extra_data = extra_items_map.get(d.name, {"extra_item": "", "extra_qty": 0.0})
@@ -83,7 +83,7 @@ def get_data(report_filters):
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
 			if index != 0:
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage","custom_total_weight_in_kgs"]:
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage","custom_total_weight_in_kgs","scrap_rate","produced_item_valuation_rate"]:
 					row[field] = ""
 
 			data.append(row)
@@ -211,6 +211,12 @@ def get_columns():
 	"fieldtype": "Float",
 	"width": 100,
 },
+{
+	"label": _("Scrap Valuation Rate"),
+	"fieldname":"scrap_rate",
+	"fieldtype":"Currency",
+	"width":100,
+},
   {
 	  "label": _("Scrap(%)"),
 		"fieldname": "scrap_percentage",
@@ -230,6 +236,8 @@ def get_columns():
 		{"label": _("Qty to Produce"), "fieldname": "qty", "fieldtype": "Float", "width": 120},
 		{"label": _("Produced Qty"), "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
 		{"label": _("Produced Kgs"), "fieldname": "custom_total_weight_in_kgs", "fieldtype": "Float", "width": 110},
+  		{"label": _("Produced Item Valuation Rate"), "fieldname": "produced_item_valuation_rate", "fieldtype": "Currency", "width": 110},
+
 		{
 			"label": _("Raw Material Item"),
 			"fieldname": "raw_material_item_code",
@@ -336,7 +344,9 @@ def get_scrap_item_and_qty(work_orders):
 		SELECT 
 			`tabStock Entry`.work_order,
 			`tabStock Entry Detail`.`item_code`, 
-			`tabStock Entry Detail`.`qty`
+			`tabStock Entry Detail`.`qty`,
+			`tabStock Entry Detail`.`valuation_rate`
+
 		FROM 
 			`tabStock Entry`
 		LEFT JOIN 
@@ -357,7 +367,8 @@ def get_scrap_item_and_qty(work_orders):
 	for d in scrap_items:
 		scrap_item_qty_map[d.work_order] = {
 			"scrap_item": d.item_code,
-			"scrap_qty": d.qty
+			"scrap_qty": d.qty,
+			"scrap_rate":d.valuation_rate
 		}
 	
 	return scrap_item_qty_map
@@ -542,7 +553,8 @@ def get_filtered_work_orders(work_orders, filters):
 		additional_fields = frappe.get_all('Work Order', 
 										  filters={'name': ['in', filtered_work_order_names]},
 										  fields=fields) 
-		
+	else:
+		return {}
 	return additional_fields
 
 
@@ -567,7 +579,7 @@ def calculate_total_consumed_qty(work_order_name):
 
 def get_custom_total_weight(work_orders):
     """
-    Fetches the custom total weight in kgs for each work order item
+    Fetches the custom total weight in kgs and produced item valuation rate for each work order item
     from the Stock Entry Detail table and maps it to the work order.
     If custom_total_weight_in_kgs is None, it uses qty instead.
     """
@@ -576,13 +588,14 @@ def get_custom_total_weight(work_orders):
     # Get work order names
     work_order_names = [d.name for d in work_orders]
 
-    # Fetch the custom total weight in kgs for each stock entry related to the work orders
+    # Fetch the custom total weight in kgs and valuation rate for each stock entry related to the work orders
     weight_data = frappe.db.sql("""
         SELECT 
             `tabStock Entry`.work_order,
             `tabStock Entry Detail`.item_code, 
             `tabStock Entry Detail`.qty,
-            `tabStock Entry Detail`.custom_total_weight_in_kgs
+            `tabStock Entry Detail`.custom_total_weight_in_kgs,
+            `tabStock Entry Detail`.valuation_rate
         FROM 
             `tabStock Entry`
         LEFT JOIN 
@@ -598,11 +611,15 @@ def get_custom_total_weight(work_orders):
             AND `tabStock Entry`.work_order IN %(work_orders)s
     """, {"work_orders": work_order_names}, as_dict=True)
 
-    # Map the weight data to each work order
+    # Map the weight and valuation rate data to each work order
     for entry in weight_data:
         weight = entry['custom_total_weight_in_kgs'] if entry['custom_total_weight_in_kgs'] is not None else entry['qty']
-        custom_weight_map[entry['work_order']] = weight
+        custom_weight_map[entry['work_order']] = {
+            "custom_total_weight_in_kgs": weight,
+            "produced_item_valuation_rate": entry['valuation_rate']
+        }
 
-    # Add the custom weight to each work order item in the work_orders list
+    # Add the custom weight and valuation rate to each work order item in the work_orders list
     for row in work_orders:
-        row.custom_total_weight_in_kgs = custom_weight_map.get(row.name, 0.0)
+        row.custom_total_weight_in_kgs = custom_weight_map.get(row.name, {}).get("custom_total_weight_in_kgs", 0.0)
+        row.produced_item_valuation_rate = custom_weight_map.get(row.name, {}).get("produced_item_valuation_rate", 0.0)
