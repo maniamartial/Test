@@ -141,7 +141,7 @@ def send_stock_available_notification(order_id, items):
 		</table>
 		<p>You may proceed with pickup or purchase. Status has been updated to "Awaiting Delivery".</p>
 	"""
-	frappe.sendmail(recipients=user_email,cc=owner_email,expose_recipients = 'header', subject=subject, message=message)
+	frappe.sendmail(recipients=user_email,cc=owner_email, expose_recipients = 'header', subject=subject, message=message)
 
 def get_available_qty(item_code, warehouse):
 	stock_qty = frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty")
