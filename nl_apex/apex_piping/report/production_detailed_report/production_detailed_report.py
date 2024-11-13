@@ -13,7 +13,6 @@ def execute(filters=None):
 
 	return columns, data
 
-
 def get_data(report_filters):
 	fields = get_fields()
 	filters = get_filter_condition(report_filters)
@@ -41,7 +40,6 @@ def get_data(report_filters):
 	get_custom_total_weight(work_orders)
 	scrap_items_map = get_scrap_item_and_qty(work_orders)
 	extra_items_map = get_extra_item_and_qty(work_orders)  # Get extra items here
-
 
 	for d in work_orders:
 		d.extra_consumed_qty = 0.0
