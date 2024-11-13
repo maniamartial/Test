@@ -156,7 +156,12 @@ doctype_js = {"Sales Order" : "public/js/sales_order.js",
 
 # Scheduled Tasks
 # ---------------
-
+scheduler_events = {
+	"daily": [
+		"nl_apex.apex_piping.overrides.sales_order.check_and_notify_stock_status"
+	],
+	
+}
 # scheduler_events = {
 # 	"all": [
 # 		"nl_apex.tasks.all"
