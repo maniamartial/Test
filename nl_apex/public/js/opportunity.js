@@ -1,33 +1,34 @@
 
-
-frappe.ui.form.on('Opportunity Item', {
-    item_code: function(frm, cdt, cdn){
-        let row = locals[cdt][cdn];
-        frappe.model.set_value(cdt, cdn, 'base_rate', row.price_list_rate);
-    frappe.model.set_value(cdt, cdn, 'rate', row.price_list_rate);
-    }
-});
  
-    // item_code: function(frm, cdt, cdn) {
-    //     let row = locals[cdt][cdn];
-        
-    //     if (row.item_code && frm.doc.custom_price_list) {
-    //         frappe.call({
-    //             method: "nl_apex.apex_piping.overrides.opportunity.get_price_list_rate",
-    //             args: {
-    //                 item_code: row.item_code,
-    //                 price_list: frm.doc.custom_price_list,
-    //                 customer: frm.doc.party_name,
-    //             },
-    //             callback: function(r) {
-    //                 if (r.message) {
-    //                     frappe.model.set_value(cdt, cdn, 'price_list_rate', r.message);
-    //                     frappe.model.set_value(cdt, cdn, 'base_rate', r.message);
-    //                     frappe.model.set_value(cdt, cdn, 'rate', r.message);
-    //                     frm.refresh_fields();
-    //                 }
-    //             }
-    //         });
-    //     }
-    // }
-// });
+frappe.ui.form.on("Opportunity Item", "item_code", function(frm, cdt, cdn) {
+    var row = locals[cdt][cdn];
+
+    frappe.call({
+        method: "frappe.client.get_value",
+        args: {
+            doctype: "Item Price",
+            fieldname: "price_list_rate",
+            filters: {
+                "item_code": row.item_code,
+                "price_list": "Standard Selling"
+            }
+        },
+        callback: function(data) {
+            // Debugging: check the data structure
+            console.log(data);
+
+            if (data.message && data.message.price_list_rate) {
+                var price_rate = data.message.price_list_rate;
+
+                // Set the base rate and rate
+                frappe.model.set_value(cdt, cdn, "base_rate", price_rate);
+                frappe.model.set_value(cdt, cdn, "rate", price_rate);
+
+                // Optional: Refresh the table if needed
+                frappe.refresh_field("items", frm);
+            } else {
+                frappe.msgprint(__('No price found for the item.'));
+            }
+        }
+    });
+});

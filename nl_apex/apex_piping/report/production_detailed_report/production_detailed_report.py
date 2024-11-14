@@ -97,12 +97,12 @@ def calculate_avg_unit_weight(produced_kgs, produced_qty):
         produced_kgs = float(produced_kgs)
         produced_qty = float(produced_qty)
         
-        if produced_qty != 0:  # Avoid division by zero
+        if produced_qty != 0:
             return produced_kgs / produced_qty
         else:
             return 0.0
     except (ValueError, TypeError):
-        pass  # Handle the case where conversion fails
+        pass  
     
     return 0.0
 
