@@ -66,7 +66,10 @@ def get_data(report_filters):
 
 		# Calculate amount: valuation rate * consumed qty
 		d.amount=(d.valuation_rate * d.consumed_qty) if d.valuation_rate and d.consumed_qty else 0.0
+		d.weight_per_unit=get_item_weight(d.production_item)
   
+		d.avg_unit_weight = calculate_avg_unit_weight(d.custom_total_weight_in_kgs, d.produced_qty)
+		d.weight_variance = round(d.weight_per_unit - d.avg_unit_weight,2)
   
 		# Calculate scrap percentage: (scrap_qty / produced_qty) * 100
 		if d.total_consumed_qty:
@@ -81,11 +84,28 @@ def get_data(report_filters):
 	for _key, wo_data in wo_items.items():
 		for index, row in enumerate(wo_data):
 			if index != 0:
-				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage","custom_total_weight_in_kgs","scrap_rate","produced_item_valuation_rate"]:
+				for field in ["name", "status", "production_item", "qty", "produced_qty", "scrap_item", "scrap_qty","extra_item","extra_qty","extra_item_name","machine","employee","custom_shift","scrap_percentage","custom_total_weight_in_kgs","scrap_rate","produced_item_valuation_rate","weight_per_unit","avg_unit_weight","weight_variance"]:
 					row[field] = ""
 
 			data.append(row)
 	return data
+
+def calculate_avg_unit_weight(produced_kgs, produced_qty):
+    """Calculates the average unit weight safely."""
+    try:
+        # Convert to float if they are strings
+        produced_kgs = float(produced_kgs)
+        produced_qty = float(produced_qty)
+        
+        if produced_qty != 0:  # Avoid division by zero
+            return produced_kgs / produced_qty
+        else:
+            return 0.0
+    except (ValueError, TypeError):
+        pass  # Handle the case where conversion fails
+    
+    return 0.0
+
 
 def get_returned_materials(work_orders):
 	raw_materials_qty = defaultdict(float)
@@ -231,9 +251,13 @@ def get_columns():
 			"options": "Item",
 			"width": 130,
 		},
+
 		{"label": _("Qty to Produce"), "fieldname": "qty", "fieldtype": "Float", "width": 120},
 		{"label": _("Produced Qty"), "fieldname": "produced_qty", "fieldtype": "Float", "width": 110},
 		{"label": _("Produced Kgs"), "fieldname": "custom_total_weight_in_kgs", "fieldtype": "Float", "width": 110},
+      		{"label": _("Unit Weight"), "fieldname":"weight_per_unit", "width":100},
+    {"label": _("Weight Variance"), "fieldname":"weight_variance", "width":100},
+	{"label": _("Avg. Unit Weight"), "fieldname": "avg_unit_weight", "width": 110},
   		{"label": _("Produced Item Valuation Rate"), "fieldname": "produced_item_valuation_rate", "fieldtype": "Currency", "width": 110},
 
 		{
@@ -621,3 +645,11 @@ def get_custom_total_weight(work_orders):
     for row in work_orders:
         row.custom_total_weight_in_kgs = custom_weight_map.get(row.name, {}).get("custom_total_weight_in_kgs", 0.0)
         row.produced_item_valuation_rate = custom_weight_map.get(row.name, {}).get("produced_item_valuation_rate", 0.0)
+
+
+def get_item_weight(item_code):
+    """
+    Fetch the weight_per_unit from the Item Master based on the given item_code.
+    """
+    item = frappe.get_doc("Item", item_code)
+    return item.weight_per_unit if item else 0.0
