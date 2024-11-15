@@ -14,8 +14,6 @@ frappe.ui.form.on("Opportunity Item", "item_code", function(frm, cdt, cdn) {
             }
         },
         callback: function(data) {
-            // Debugging: check the data structure
-            console.log(data);
 
             if (data.message && data.message.price_list_rate) {
                 var price_rate = data.message.price_list_rate;
@@ -25,7 +23,7 @@ frappe.ui.form.on("Opportunity Item", "item_code", function(frm, cdt, cdn) {
                 frappe.model.set_value(cdt, cdn, "rate", price_rate);
 
                 // Optional: Refresh the table if needed
-                frappe.refresh_field("items", frm);
+                frappe.refresh_field("items");
             } else {
                 frappe.msgprint(__('No price found for the item.'));
             }
