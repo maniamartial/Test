@@ -126,22 +126,24 @@ def send_stock_available_notification(order_id, items):
 	sales_order = frappe.get_doc("Sales Order", order_id)
 	user_email = get_customer_email(sales_order)
 	owner_email = frappe.get_doc("User", sales_order.owner).email
-
+ 
+	'''I was against this but I had to do it to fullfil there requirements'''
+	sales_general='sales@apex-piping.com'
 	subject = f"Stock Available for Your Sales Order {order_id}"
 	item_rows = "".join(
-		f"<tr><td>{item.item_code}</td><td>{item.qty}</td><td>{get_available_qty(item.item_code, item.warehouse)}</td></tr>"
+		f"<tr><td>{item.item_name}</td><td>{item.qty}</td></tr>"
 		for item in items
 	)
 	message = f"""
 		<p>Dear {sales_order.customer_name},</p>
 		<p>The following items you requested are now in stock:</p>
 		<table border="1">
-			<tr><th>Item Code</th><th>Requested Quantity</th><th>Available Quantity</th></tr>
+			<tr><th>Item Code</th><th>Requested Quantity</th></tr>
 			{item_rows}
 		</table>
 		<p>You may proceed with pickup or purchase. Status has been updated to "Awaiting Delivery".</p>
 	"""
-	frappe.sendmail(recipients=user_email,cc=owner_email, expose_recipients = 'header', subject=subject, message=message)
+	frappe.sendmail(recipients=user_email,cc=sales_general, expose_recipients = 'header', subject=subject, message=message)
 
 def get_available_qty(item_code, warehouse):
 	stock_qty = frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty")
