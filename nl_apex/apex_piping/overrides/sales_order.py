@@ -98,6 +98,7 @@ def invoices_payment_due_validation():
 			
 
 '''Notify when stock is added in the system'''
+# @frappe.whitelist(allow_guest=True)
 def check_and_notify_stock_status():	
 	orders_to_notify = defaultdict(list)
 
@@ -105,6 +106,7 @@ def check_and_notify_stock_status():
 		filters={
 			"custom_delivery_status": "Sourcing",
 			"custom_email_sent": 0
+			
 		},
 		fields=["name", "parent", "item_code", "qty", "warehouse", "idx"]
 	)
@@ -122,23 +124,26 @@ def check_and_notify_stock_status():
 
 	frappe.db.commit()
 
+@frappe.whitelist(allow_guest=True)
 def send_stock_available_notification(order_id, items):
 	sales_order = frappe.get_doc("Sales Order", order_id)
 	user_email = get_customer_email(sales_order)
 	owner_email = frappe.get_doc("User", sales_order.owner).email
+	
  
 	'''I was against this but I had to do it to fullfil there requirements'''
 	sales_general='sales@apex-piping.com'
 	subject = f"Stock Available for Your Sales Order {order_id}"
-	item_rows = "".join(
-		f"<tr><td>{item.item_name}</td><td>{item.qty}</td></tr>"
-		for item in items
-	)
+	item_rows = ""
+	for item in items:
+		item_doc = frappe.get_doc("Item", item.item_code)  # Fetch item details
+		item_rows += f"<tr><td>{item_doc.item_name}</td><td>{item.qty}</td></tr>"
+
 	message = f"""
-		<p>Dear {sales_order.customer_name},</p>
+		<p>Dear {frappe.get_doc("Contact", sales_order.custom_cash_customer).full_name if sales_order.customer_name=="CASH CUSTOMER CONTROL" else sales_order.customer_name },</p>
 		<p>The following items you requested are now in stock:</p>
 		<table border="1">
-			<tr><th>Item Code</th><th>Requested Quantity</th></tr>
+			<tr><th>Item Name</th><th>Requested Quantity</th></tr>
 			{item_rows}
 		</table>
 		<p>You may proceed with pickup or purchase. Status has been updated to "Awaiting Delivery".</p>
@@ -149,40 +154,39 @@ def get_available_qty(item_code, warehouse):
 	stock_qty = frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty")
 	return flt(stock_qty) if stock_qty else 0
 
-
 def get_customer_email(doc):
-    if doc.customer == "CASH CUSTOMER CONTROL":
-        if doc.custom_cash_customer:
-            email = get_contact_email(doc.custom_cash_customer, doc)
-            if not email:
-                return None
-            return email
-        else:
-            return None
-    else:
-        return get_contact_email(doc.customer, doc)
+	if doc.customer == "CASH CUSTOMER CONTROL":
+		if doc.custom_cash_customer:
+			email = get_contact_email(doc.custom_cash_customer, doc)
+			if not email:
+				return None
+			return email
+		else:
+			return None
+	else:
+		return get_contact_email(doc.customer, doc)
 
 def get_contact_email(contact_name, doc):
-    contact_id = ''
+	contact_id = ''
 
-    if doc.custom_cash_customer:
-        try:
-            contact_id = frappe.get_doc("Contact", contact_name)
-        except frappe.DoesNotExistError:
-            return None
-    else:
-        contact_names = frappe.get_all("Contact", filters={"full_name": contact_name}, fields=["name"])
-        if contact_names:
-            try:
-                contact_id = frappe.get_doc("Contact", contact_names[0].name)
-            except frappe.DoesNotExistError:
-                return None
-        else:
-            return None
+	if doc.custom_cash_customer:
+		try:
+			contact_id = frappe.get_doc("Contact", contact_name)
+		except frappe.DoesNotExistError:
+			return None
+	else:
+		contact_names = frappe.get_all("Contact", filters={"full_name": contact_name}, fields=["name"])
+		if contact_names:
+			try:
+				contact_id = frappe.get_doc("Contact", contact_names[0].name)
+			except frappe.DoesNotExistError:
+				return None
+		else:
+			return None
 
-    # Get the email address from the contact
-    email_address = contact_id.get("email_id")
-    if email_address:
-        return email_address
-    else:
-        return None
+	# Get the email address from the contact
+	email_address = contact_id.get("email_id")
+	if email_address:
+		return email_address
+	else:
+		return None
