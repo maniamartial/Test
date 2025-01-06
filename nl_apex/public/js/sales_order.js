@@ -162,3 +162,4 @@ function validate_cost_status(frm) {
     const costValStatus = frm.doc.items.some(isAnyFailedCostValidation);
     frm.set_value("custom_cost_validation_status", costValStatus ? "FAIL" : "PASS");
 }
+
