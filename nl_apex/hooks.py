@@ -26,6 +26,9 @@ doc_events = {
     },
     "Comment":{
                 "after_insert":"nl_apex.apex_piping.overrides.comments.before_save",
+    },
+    "BOM":{
+        "before_save":"nl_apex.apex_piping.overrides.bom.set_cost_per_unit",
     }
 }
 
@@ -51,7 +54,8 @@ doc_events = {
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_js = {"Sales Order" : "public/js/sales_order.js",
               "Delivery Note": "public/js/delivery_note.js",
-              "Opportunity": "public/js/opportunity.js",}
+              "Opportunity": "public/js/opportunity.js",
+              "BOM": "public/js/bom.js",}
 
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
