@@ -30,6 +30,9 @@ function update_custom_cost(frm, cdt = null, cdn = null) {
             fieldname: 'custom_cost_per_unit'
         },
         callback: function(response) {
+            if(response.message.custom_cost_per_unit == 0){
+                frappe.throw(__('Cost per Unit is not set for this item {0}', [frm.doc.item]));
+            }
             if (response.message && response.message.custom_cost_per_unit) {
                 let cost_per_unit = response.message.custom_cost_per_unit;
 
