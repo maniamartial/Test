@@ -15,7 +15,6 @@ def get_update_approver(doc, method=None):
     if email:
         full_name = frappe.db.get_value("User", {"email": email}, "full_name")
 
-    # Check if the document is a Sales Order and if it is submitted
     if doc.reference_doctype == reference_doctype and doc.content==comment_content:
         sales_order = frappe.get_doc(reference_doctype, doc.reference_name)
         

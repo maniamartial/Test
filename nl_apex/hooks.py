@@ -7,6 +7,26 @@ app_license = "agpl-3.0"
 # required_apps = []
 
 
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                (
+                    "Sales Invoice-custom_gross_proft",
+                    "Sales Invoice-custom_gross_profit_",
+                    "Delivery Note-custom_gross_proft",
+                    "Delivery Note-custom_gross_profit_",
+                    
+                ),
+            ]
+        ],
+    },
+
+]
+
 
 # Includes in <head>
 # ------------------
