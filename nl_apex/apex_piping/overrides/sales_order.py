@@ -12,11 +12,10 @@ from collections import defaultdict
 
 
 def validate(doc: Document, method: str | None = None) -> None:
-	if doc.custom_sales_type == "Credit":
+	if doc.custom_sales_type == "Credit" or doc.custom_sales_type == "CREDIT":
 		# Only perform credit check for credit customers
 		company = frappe.defaults.get_user_default("Company")
 		status=check_credit_limit(doc, doc.customer, company)
-		
 		doc.custom_credit_check=status
 		# Update Outstanding Limit and Credit Limit custom fields of Sales Order
 		doc.custom_outstanding_balance = get_customer_outstanding(doc.customer, company)
