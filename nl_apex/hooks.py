@@ -19,6 +19,7 @@ fixtures = [
                     "Sales Invoice-custom_gross_profit_",
                     "Delivery Note-custom_gross_proft",
                     "Delivery Note-custom_gross_profit_",
+                    "BOM-custom_set_cost_per_unit"
                     
                 ),
             ]

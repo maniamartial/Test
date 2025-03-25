@@ -1,21 +1,30 @@
 
 frappe.ui.form.on('BOM', {
     refresh: function(frm) {
-        if (!frm.is_new()) {
-            update_custom_cost(frm);
+        if(frm.doc.custom_set_cost_per_unit===1){
+            if (!frm.is_new()) {
+                update_custom_cost(frm);
+            }
         }
+        
     },
     item: function(frm) {
+        if(frm.doc.custom_set_cost_per_unit===1){
         update_custom_cost(frm);
+        }
     }
 });
 
 frappe.ui.form.on('BOM Operation', {
     operations_add: function(frm, cdt, cdn) {
-        update_custom_cost(frm, cdt, cdn);
+        if (frm.doc.custom_set_cost_per_unit) {
+            update_custom_cost(frm, cdt, cdn);
+        }
     },
     operation: function(frm, cdt, cdn) {
-        update_custom_cost(frm, cdt, cdn);
+        if (frm.doc.custom_set_cost_per_unit) {
+            update_custom_cost(frm, cdt, cdn);
+        }
     }
 });
 
