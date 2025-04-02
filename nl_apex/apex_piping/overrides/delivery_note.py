@@ -49,7 +49,9 @@ def make_sales_invoice(doc, method=None):
             target.update(get_company_address(target.company))
 
         if target.company_address:
-            target.update(frappe.get_fetch_values("Sales Invoice", "company_address", target.company_address))
+            # target.update(frappe.get_fetch_values("Sales Invoice", "company_address", target.company_address))
+            target.company_address = frappe.get_value("Sales Invoice", target.company, "company_address")
+
 
     def update_item(source_doc, target_doc, source_parent):
         target_doc.qty = to_make_invoice_qty_map[source_doc.name]

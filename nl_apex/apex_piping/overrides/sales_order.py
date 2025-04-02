@@ -39,6 +39,7 @@ def check_credit_limit(
 	customer_outstanding_and_base=get_customer_outstanding(
 		customer, company, ignore_outstanding_sales_order
 	)
+ 
 	customer_total_so=get_customers_total_base_for_sales_order(customer) + doc.base_total
 	status="FAIL"
 
