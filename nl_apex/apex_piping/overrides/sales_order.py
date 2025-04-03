@@ -190,3 +190,15 @@ def get_contact_email(contact_name, doc):
 		return email_address
 	else:
 		return None
+
+
+@frappe.whitelist()
+def get_allowed_items(company):
+    """
+    Fetch allowed items for a given company from Item Default.
+    """
+    if not company:
+        return []
+
+    allowed_items = frappe.get_all("Item Default", filters={"company": company}, pluck="parent")
+    return allowed_items

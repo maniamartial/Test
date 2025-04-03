@@ -81,6 +81,12 @@ frappe.ui.form.on('Sales Order', {
                 frm.set_value("custom_payment_due_validation", response.status);
             },
         });
+    },
+    refresh: function(frm) {
+        set_item_filters(frm);
+    },
+    company: function(frm) {
+        set_item_filters(frm);
     }
 });
 
@@ -161,5 +167,29 @@ function validate_cost_status(frm) {
     const isAnyFailedCostValidation = (element) => element.custom_cost_validation === "FAIL";
     const costValStatus = frm.doc.items.some(isAnyFailedCostValidation);
     frm.set_value("custom_cost_validation_status", costValStatus ? "FAIL" : "PASS");
+}
+
+
+function set_item_filters(frm) {
+    if (!frm.doc.company) return;
+
+    frappe.call({
+        method: "nl_apex.apex_piping.overrides.sales_order.get_allowed_items",
+        args: { company: frm.doc.company },
+        callback: function(response) {
+            if (response.message) {
+                let allowed_items = response.message;
+
+                frm.fields_dict["items"].grid.get_field("item_code").get_query = function(frm, cdt, cdn) {
+                    return {
+                        filters: {
+                            "name": ["in", allowed_items],
+                            "is_sales_item": 1 
+                        }
+                    };
+                };
+            }
+        }
+    });
 }
 
