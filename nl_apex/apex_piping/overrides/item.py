@@ -11,7 +11,7 @@ def get_permission_query_conditions(user):
     allowed_branches = get_allowed_branches(user)
 
     if not allowed_branches:
-        return "1=0"
+        return ""
 
     allowed_branches = [f"'{b}'" for b in allowed_branches]
     branch_list = ", ".join(allowed_branches)

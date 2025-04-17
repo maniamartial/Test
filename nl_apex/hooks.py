@@ -21,7 +21,6 @@ fixtures = [
                     "Delivery Note-custom_gross_profit_",
                     "BOM-custom_set_cost_per_unit",
                     "Item Default-custom_branch"
-                    
                 ),
             ]
         ],
