@@ -93,7 +93,6 @@ frappe.ui.form.on('Sales Order', {
 frappe.ui.form.on('Sales Order Item', {
     amount: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
-        // Calculate valuation and gross profit when amount changes
         calculate_valuation_amount(row);
         calculate_gross_profit_percentage(row);
         frm.refresh_field('items');

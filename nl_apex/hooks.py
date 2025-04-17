@@ -19,7 +19,8 @@ fixtures = [
                     "Sales Invoice-custom_gross_profit_",
                     "Delivery Note-custom_gross_proft",
                     "Delivery Note-custom_gross_profit_",
-                    "BOM-custom_set_cost_per_unit"
+                    "BOM-custom_set_cost_per_unit",
+                    "Item Default-custom_branch"
                     
                 ),
             ]
@@ -158,6 +159,13 @@ doctype_js = {"Sales Order" : "public/js/sales_order.js",
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
+
+# has_permission = {
+#     "Item": "nl_apex.apex_piping.overrides.item.has_permission",
+# }
+permission_query_conditions = {
+    "Item": "nl_apex.apex_piping.overrides.item.get_permission_query_conditions",
+}
 
 # DocType Class
 # ---------------
