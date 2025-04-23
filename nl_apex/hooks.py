@@ -6,7 +6,6 @@ app_email = "mania@navari.co.ke"
 app_license = "agpl-3.0"
 # required_apps = []
 
-
 fixtures = [
     {
         "doctype": "Custom Field",
@@ -20,6 +19,8 @@ fixtures = [
                     "Delivery Note-custom_gross_proft",
                     "Delivery Note-custom_gross_profit_",
                     "BOM-custom_set_cost_per_unit",
+                    "Selling Settings-custom_create_invoice_on_dnote_submission",
+                    "Sales Order-custom_is_cash_sales"
                 ),
             ]
         ],
