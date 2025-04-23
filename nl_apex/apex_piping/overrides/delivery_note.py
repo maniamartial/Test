@@ -12,6 +12,9 @@ from frappe.query_builder import DocType
 @frappe.whitelist()
 def make_sales_invoice(doc, method=None):
     # Fetch the delivery note
+    create_invoice = get_selling_setting()
+    if not create_invoice:
+        return
     doc = frappe.get_doc("Delivery Note", doc.name)
     if doc.is_return:
         return
@@ -204,3 +207,11 @@ def get_series(doc_name):
 def order_no_generated(doc_name):
     series=get_series(doc_name)
     frappe.db.set_value("Delivery Note",doc_name,"custom_delivery_note_no",series)
+
+
+def get_selling_setting():
+    selling_setting = frappe.get_single("Selling Settings")
+    if selling_setting.custom_create_invoice_on_dnote_submission:
+        return True
+    else:
+        return False
