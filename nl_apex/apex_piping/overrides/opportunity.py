@@ -436,6 +436,9 @@ def apply_pricing_rule(args, doc=None):
 	return out
 
 def refresh_opportunity_items_on_validate(doc, method=None):
+	price_rule_enabled = is_price_rule_enabled()
+	if not price_rule_enabled:
+		return 
 	"""
 	On validate, update Opportunity Items with latest item details
 	(pricing rules, taxes, discounts, etc.).
@@ -487,10 +490,24 @@ def add_free_items_to_opportunity(doc, free_item_data_list):
 				"conversion_factor": free_item.get("conversion_factor", 1.0),
 				"qty": free_item.get("qty", 0),
 				"rate": free_item.get("rate", 0),
+				"amount":free_item.get("rate", 0) * free_item.get("qty", 0),
+				"base_rate":free_item.get("rate", 0),
+				"base_amount":free_item.get("rate", 0),
+				"net_rate":free_item.get("rate", 0),
+				"base_net_rate":free_item.get("rate", 0),
+				"net_amount":free_item.get("rate", 0) * free_item.get("qty", 0),
+    			"base_net_amount":free_item.get("rate", 0) * free_item.get("qty", 0),
 				"price_list_rate": free_item.get("price_list_rate", 0),
+    			"base_price_list_rate": free_item.get("price_list_rate", 0),
 				"is_free_item": 1,  
 				"discount_percentage": 100,
 				"amount": free_item.get("rate", 0) * free_item.get("qty", 0),
 				"pricing_rules": free_item.get("pricing_rules"),
 			})
 
+
+def is_price_rule_enabled():
+	selling_settings = frappe.get_single("Selling Settings")
+	if selling_settings.custom_enable_price_rule:
+		return True
+	return False
