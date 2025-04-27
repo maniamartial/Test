@@ -2,7 +2,7 @@ import frappe
 import copy
 import json
 
-from frappe.utils import cint, flt
+from frappe.utils import flt
 from frappe.utils import today
 from erpnext.stock.get_item_details import get_item_price
 
@@ -511,3 +511,4 @@ def is_price_rule_enabled():
 	if selling_settings.custom_enable_price_rule:
 		return True
 	return False
+
