@@ -38,7 +38,9 @@ fixtures = [
                     "Opportunity Item-custom_uom_conversion_factor",
                     "Opportunity Item-custom_column_break_iuabb",
                     "Opportunity Item-custom_stock_uom",
-                    "Opportunity Item-custom_section_break_sfdpn"
+                    "Opportunity Item-custom_section_break_sfdpn",
+                    "Opportunity Item-custom_pricing_rules",
+                    "Opportunity Item-custom_column_break_lfoog"
                 ),
             ]
         ],
