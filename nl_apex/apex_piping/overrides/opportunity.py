@@ -1,21 +1,13 @@
 import frappe
 import copy
 import json
-import re
 
-from frappe import _, throw
-from frappe.model.document import Document
 from frappe.utils import cint, flt
 from frappe.utils import today
 from erpnext.stock.get_item_details import get_item_price
-from erpnext.accounts.doctype.pricing_rule.utils import (
-		get_applied_pricing_rules,
-		get_pricing_rule_items,
-	)
 
 @frappe.whitelist(allow_guest=True)
 def get_price_list_rate():
-	# Retrieve parameters from the request
 	item_code = frappe.form_dict.get('item_code')
 	price_list = frappe.form_dict.get('custom_price_list')
 	customer = frappe.form_dict.get('party_name')
@@ -435,7 +427,6 @@ def apply_pricing_rule(args, doc=None):
 	serialized_items = dict()
 	for item_code, val in query_items:
 		serialized_items.setdefault(item_code, val)
-	# frappe.throw(str(item_list))
 	for item in item_list:
 		args_copy = copy.deepcopy(args)
 		args_copy.update(item)
@@ -444,15 +435,12 @@ def apply_pricing_rule(args, doc=None):
 
 	return out
 
-import frappe
-
 def refresh_opportunity_items_on_validate(doc, method=None):
 	"""
 	On validate, update Opportunity Items with latest item details
 	(pricing rules, taxes, discounts, etc.).
 	"""
 	for item in doc.items:
-		# Prepare args for get_item_details
 		args = frappe._dict({
 			"item_code": item.item_code,
 			"customer": doc.customer_name,
@@ -473,16 +461,13 @@ def refresh_opportunity_items_on_validate(doc, method=None):
 			"ignore_pricing_rule": 0,
 			"transaction_type": "selling",
 			"parent": doc.name,
-
 			"parenttype": doc.doctype,
    
 		})
 
-		# try:
 		item_details = get_pricing_rule_for_item(args, doc=doc, for_validate=True)
 		if item_details and item_details.get("free_item_data"):
 			add_free_items_to_opportunity(doc, item_details.get("free_item_data"))
-		# frappe.throw(str(item_details))  # For now you are inspecting item_details
 		
 		
 def add_free_items_to_opportunity(doc, free_item_data_list):
@@ -503,9 +488,9 @@ def add_free_items_to_opportunity(doc, free_item_data_list):
 				"qty": free_item.get("qty", 0),
 				"rate": free_item.get("rate", 0),
 				"price_list_rate": free_item.get("price_list_rate", 0),
-				"is_free_item": 1,  # Custom field you can create in Opportunity Item if not already
-				"discount_percentage": 100,  # Usually free items are 100% discount
+				"is_free_item": 1,  
+				"discount_percentage": 100,
 				"amount": free_item.get("rate", 0) * free_item.get("qty", 0),
-
 				"pricing_rules": free_item.get("pricing_rules"),
 			})
+
