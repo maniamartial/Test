@@ -20,7 +20,27 @@ fixtures = [
                     "Delivery Note-custom_gross_profit_",
                     "BOM-custom_set_cost_per_unit",
                     "Selling Settings-custom_create_invoice_on_dnote_submission",
-                    "Sales Order-custom_is_cash_sales"
+                    "Sales Order-custom_is_cash_sales",
+                    "Selling Settings-custom_enable_price_rule",
+                    
+                    "Opportunity Item-custom_section_break_lnbyn",
+                    "Opportunity Item-custom_is_alternative",
+                    "Opportunity Item-custom_column_break_p8dlt",
+                    "Opportunity Item-custom_price_list_rate",
+                    "Opportunity Item-custom_is_free_item",
+                    "Opportunity Item-custom_net_rate_company_currency",
+                    "Opportunity Item-custom_net_rate",
+                    "Opportunity Item-custom_net_amount_company_currency",
+                    "Opportunity Item-custom_net_amount",
+                    "Opportunity Item-custom_price_list_rate_company_currency",
+                    "Opportunity Item-custom_column_break_lfoog",
+                    "Opportunity Item-custom_section_break_mkuwy",
+                    "Opportunity Item-custom_uom_conversion_factor",
+                    "Opportunity Item-custom_column_break_iuabb",
+                    "Opportunity Item-custom_stock_uom",
+                    "Opportunity Item-custom_section_break_sfdpn",
+                    "Opportunity Item-custom_pricing_rules",
+                    "Opportunity Item-custom_column_break_lfoog"
                 ),
             ]
         ],
@@ -50,7 +70,10 @@ doc_events = {
     },
     "BOM":{
         "before_save":"nl_apex.apex_piping.overrides.bom.set_cost_per_unit",
-    }
+    },
+    "Opportunity":{
+        "validate":"nl_apex.apex_piping.overrides.opportunity.refresh_opportunity_items_on_validate",
+    },
 }
 
 # include js, css files in header of desk.html
