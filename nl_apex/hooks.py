@@ -71,9 +71,7 @@ doc_events = {
     "BOM":{
         "before_save":"nl_apex.apex_piping.overrides.bom.set_cost_per_unit",
     },
-    "Opportunity":{
-        "validate":"nl_apex.apex_piping.overrides.opportunity.refresh_opportunity_items_on_validate",
-    },
+
 }
 
 # include js, css files in header of desk.html
