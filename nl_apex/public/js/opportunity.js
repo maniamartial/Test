@@ -52,7 +52,7 @@ frappe.ui.form.on("Opportunity Item", {
                     frappe.model.set_value(cdt, cdn, "base_rate", price_rate);
                     frappe.model.set_value(cdt, cdn, "rate", price_rate);
 
-                    frappe.refresh_field("items");
+                    frm.refresh_field("items");
                 } else {
                     console.log('No price found for the item.');
                 }
@@ -95,7 +95,7 @@ frappe.ui.form.on("Opportunity Item", {
 });
 
 // Enhanced function to add free items
-function add_free_items_to_opportunity(frm, free_items, parent_item_code) {
+function add_free_items_to_opportunity(frm, free_items) {
     // Get existing item codes to avoid duplicates
     const existing_items = frm.doc.items || [];
     const existing_item_codes = existing_items.map(item => item.item_code);
@@ -125,18 +125,13 @@ function add_free_items_to_opportunity(frm, free_items, parent_item_code) {
             net_amount: free_item.rate * free_item.qty,
             is_free_item: 1,
             pricing_rules: free_item.pricing_rules,
-            against_opportunity_item: parent_item_code, // Link to parent item
-            custom_is_free_item: 1 // Custom field to mark as free item
+            custom_is_free_item: 1 
         });
         
-        // Set readonly fields
-        // new_row.$wrapper.find('input[data-fieldname="rate"]').prop('readonly', true);
-        // new_row.$wrapper.find('input[data-fieldname="discount_percentage"]').prop('readonly', true);
+
     });
 
-    // Refresh and recalculate
-    frm.refresh_field('items');
-    // frm.cscript.calculate_taxes_and_totals();
+    frm.refresh_fields('items');
 }
 
 // Make free items read-only
