@@ -12,6 +12,8 @@ from erpnext.accounts.doctype.pricing_rule.utils import (
 		get_product_discount_rule,
 	)
 
+import frappe
+from frappe.utils import flt, nowdate
 @frappe.whitelist(allow_guest=True)
 def get_price_list_rate():
 	item_code = frappe.form_dict.get('item_code')
@@ -41,8 +43,6 @@ def is_price_rule_enabled():
 	return False
 
 
-import frappe
-from frappe.utils import flt, nowdate
 
 @frappe.whitelist()
 def get_pricing_rule_for_item(
@@ -67,7 +67,9 @@ def get_pricing_rule_for_item(
 	parent=None,
 	parenttype=None
 ):
-    
+	is_price_rule_active = is_price_rule_enabled()
+	if not is_price_rule_active:
+		return {"free_item_data": []}
 	# if ignore_pricing_rule:
 	# 	return {"free_item_data": []}
 
