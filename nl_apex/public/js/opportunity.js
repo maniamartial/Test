@@ -59,38 +59,39 @@ frappe.ui.form.on("Opportunity Item", {
             }
         });
 
-        // 2️⃣ Fetch the Free Items (via your custom server method)
-        frappe.call({
-            method: "nl_apex.apex_piping.overrides.opportunity.get_pricing_rule_for_item",
-            args: {
-                item_code: row.item_code,
-                customer: frm.doc.customer_name,
-                transaction_date: frm.doc.transaction_date,
-                selling_price_list: frm.doc.custom_selling_price,
-                price_list_currency: frm.doc.currency,
-                plc_conversion_rate: 1.0,
-                conversion_rate: 1.0,
-                doctype: frm.doc.doctype,
-                name: frm.doc.name,
-                company: frm.doc.company,
-                qty: row.qty,
-                uom: row.uom || row.stock_uom,  // Use row.uom if available, otherwise fall back to stock_uom
-                stock_uom: row.stock_uom,
-                conversion_factor: 1,
-                is_pos: 0,
-                is_subcontracted: 0,
-                ignore_pricing_rule: 0,
-                transaction_type: "selling",
-                parent: frm.doc.name,
-                parenttype: frm.doc.doctype,
-                transaction_type: "selling",
-            },
-            callback: function(r) {
-                if (r.message && r.message.free_item_data) {
-                    add_free_items_to_opportunity(frm, r.message.free_item_data);
-                }
-            }
-        });
+    //     // 2️⃣ Fetch the Free Items (via your custom server method)
+    //     frappe.call({
+    //         method: "nl_apex.apex_piping.overrides.opportunity.get_pricing_rule_for_item",
+    //         args: {
+    //             item_code: row.item_code,
+    //             customer: frm.doc.customer_name,
+    //             transaction_date: frm.doc.transaction_date,
+    //             selling_price_list: frm.doc.custom_selling_price,
+    //             price_list_currency: frm.doc.currency,
+    //             plc_conversion_rate: 1.0,
+    //             conversion_rate: 1.0,
+    //             doctype: frm.doc.doctype,
+    //             name: frm.doc.name,
+    //             company: frm.doc.company,
+    //             qty: row.qty,
+    //             uom: row.uom || row.stock_uom,  // Use row.uom if available, otherwise fall back to stock_uom
+    //             stock_uom: row.stock_uom,
+    //             conversion_factor: 1,
+    //             is_pos: 0,
+    //             is_subcontracted: 0,
+    //             ignore_pricing_rule: 0,
+    //             transaction_type: "selling",
+    //             parent: frm.doc.name,
+    //             parenttype: frm.doc.doctype,
+    //             transaction_type: "selling",
+    //         },
+    //         callback: function(r) {
+    //             if (r.message && r.message.free_item_data) {
+    //                 add_free_items_to_opportunity(frm, r.message.free_item_data);
+    //             }
+    //         }
+    //     });
+    // }
     }
 });
 

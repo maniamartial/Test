@@ -189,9 +189,9 @@ doctype_js = {"Sales Order" : "public/js/sales_order.js",
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Stock Entry": "nl_apex.apex_piping.overrides.stock_entry.StockEntry"
+}
 
 # Document Events
 # ---------------
