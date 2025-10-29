@@ -40,7 +40,8 @@ fixtures = [
                     "Opportunity Item-custom_stock_uom",
                     "Opportunity Item-custom_section_break_sfdpn",
                     "Opportunity Item-custom_pricing_rules",
-                    "Opportunity Item-custom_column_break_lfoog"
+                    "Opportunity Item-custom_column_break_lfoog",
+                    "Company-custom_bypass_finished_item_check_in_repack",
                 ),
             ]
         ],
