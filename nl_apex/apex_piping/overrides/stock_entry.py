@@ -11,6 +11,12 @@ class StockEntry(ParentStockEntry):
         For repack purpose, don't force all items with t_target to have is_finished_item.
         """
         # Keep all original ERPNext logic except for Repack handling
+        company = frappe.get_doc("Company", self.company)
+        if "custom_bypass_finished_item_check_in_repack" in [f.fieldname for f in company.meta.get("fields")]:
+            custom_bypass_finished_item_check_in_repack = company.get("custom_bypass_finished_item_check_in_repack") or 0
+        else:
+            custom_bypass_finished_item_check_in_repack = 0
+            
         if self.purpose != "Repack" and any(
             [d.item_code for d in self.items if (d.is_finished_item and d.t_warehouse)]
         ):
@@ -25,11 +31,17 @@ class StockEntry(ParentStockEntry):
         for d in self.items:
             if d.t_warehouse and not d.s_warehouse:
                 # For Repack, don't auto-mark anything (user decides)
+                
                 if self.purpose == "Repack":
-                    if d.item_code == finished_item:
-                        d.is_finished_item = 1
+                    
+                    if custom_bypass_finished_item_check_in_repack:
+                        if d.item_code == finished_item:
+                            d.is_finished_item = 1
+                        else:
+                            pass  # Don't auto-mark as scrap either
                     else:
-                        pass  # Don't auto-mark as scrap either
+                        d.is_finished_item = 1
+                        
                 elif d.item_code == finished_item:
                     d.is_finished_item = 1
                 else:
