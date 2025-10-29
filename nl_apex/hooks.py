@@ -40,7 +40,8 @@ fixtures = [
                     "Opportunity Item-custom_stock_uom",
                     "Opportunity Item-custom_section_break_sfdpn",
                     "Opportunity Item-custom_pricing_rules",
-                    "Opportunity Item-custom_column_break_lfoog"
+                    "Opportunity Item-custom_column_break_lfoog",
+                    "Company-custom_bypass_finished_item_check_in_repack",
                 ),
             ]
         ],
@@ -189,9 +190,9 @@ doctype_js = {"Sales Order" : "public/js/sales_order.js",
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Stock Entry": "nl_apex.apex_piping.overrides.stock_entry.StockEntry"
+}
 
 # Document Events
 # ---------------
