@@ -42,6 +42,8 @@ fixtures = [
                     "Opportunity Item-custom_pricing_rules",
                     "Opportunity Item-custom_column_break_lfoog",
                     "Company-custom_bypass_finished_item_check_in_repack",
+                    "Stock Entry-custom_total_outgoingscrap",
+                    "Stock Entry-custom_bypass_repack"
                 ),
             ]
         ],
@@ -98,7 +100,8 @@ doc_events = {
 doctype_js = {"Sales Order" : "public/js/sales_order.js",
               "Delivery Note": "public/js/delivery_note.js",
               "Opportunity": "public/js/opportunity.js",
-              "BOM": "public/js/bom.js",}
+              "BOM": "public/js/bom.js",
+              "Stock Entry": "public/js/stock_entry.js",}
 
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
