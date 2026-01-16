@@ -85,13 +85,19 @@ class StockEntry(ParentStockEntry):
         # First, calculate the standard total_outgoing_value (includes all items with s_warehouse)
         for d in self.get("items"):
             if d.t_warehouse:
-                self.total_incoming_value += flt(d.amount)
+                # Only exclude scrap items if it's Repack with bypass enabled
+                if should_bypass and (d.get("custom_is_additional_scrap") and d.get("is_scrap_item")):
+                    # Skip additional scrap items from total_incoming_value
+                    pass
+                else:
+                    self.total_incoming_value += flt(d.amount) 
             
             if d.s_warehouse:
                 self.total_outgoing_value += flt(d.amount)
         
         # Then, if bypass is enabled, subtract additional scrap items' basic_amount
         if should_bypass:
+            
             for d in self.get("items"):
                 if d.t_warehouse:
                     # Check if this is an additional scrap item that should be subtracted
@@ -109,7 +115,9 @@ class StockEntry(ParentStockEntry):
         
         # Store the subtracted scrap basic_amount
         if should_bypass:
+            
             self.custom_total_outgoingscrap = additional_scrap_amount
+            self.total_incoming_value -= additional_scrap_amount
         else:
             self.custom_total_outgoingscrap = 0.0
         
@@ -209,6 +217,7 @@ def recalculate_repack_basic_rate(stock_entry_name):
         
         total_finished_qty = sum([flt(d.transfer_qty) for d in doc.items if d.is_finished_item and d.t_warehouse])
         
+        # frappe.db.set_value("Stock Entry", stock_entry_name, "total_incoming_value", outgoing_items_cost + doc.total_additional_costs)
         if total_finished_qty:
             calculated_rate = flt(outgoing_items_cost / total_finished_qty)
             updated_items = []
@@ -218,11 +227,13 @@ def recalculate_repack_basic_rate(stock_entry_name):
                     if abs(flt(d.basic_rate) - calculated_rate) > 0.01:
                         new_basic_amount = flt(flt(d.transfer_qty) * calculated_rate, d.precision("basic_amount"))
                         new_amount = flt(new_basic_amount + flt(d.additional_cost), d.precision("amount"))
+                        new_valuation_rate = flt(calculated_rate) + (flt(d.additional_cost) / flt(d.transfer_qty)) if d.transfer_qty else calculated_rate
                         
                         frappe.db.set_value("Stock Entry Detail", d.name, {
                             "basic_rate": calculated_rate,
                             "basic_amount": new_basic_amount,
-                            "amount": new_amount
+                            "amount": new_amount,
+                            "valuation_rate": new_valuation_rate
                         })
                         updated_items.append(d.name)
             
