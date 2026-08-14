@@ -121,7 +121,7 @@ class StockEntry(ParentStockEntry):
         Override to exclude additional scrap items from outgoing_items_cost calculation
         when custom_bypass_repack is ticked for Repack purpose
         """
-        from erpnext.stock.stock_ledger import get_incoming_rate
+        from erpnext.stock.utils import get_incoming_rate
         
         # Check if we should bypass repack calculations
         should_bypass = (
