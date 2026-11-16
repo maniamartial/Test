@@ -121,7 +121,7 @@ class StockEntry(ParentStockEntry):
         Override to exclude additional scrap items from outgoing_items_cost calculation
         when custom_bypass_repack is ticked for Repack purpose
         """
-        from erpnext.stock.stock_ledger import get_incoming_rate
+        from erpnext.stock.utils import _get_incoming_rate
         
         # Check if we should bypass repack calculations
         should_bypass = (
@@ -139,7 +139,7 @@ class StockEntry(ParentStockEntry):
                 # Still calculate basic_rate for all items
                 if reset_outgoing_rate:
                     args = self.get_args_for_incoming_rate(d)
-                    rate = get_incoming_rate(args, raise_error_if_no_rate)
+                    rate = _get_incoming_rate(args, raise_error_if_no_rate)
                     if rate >= 0:
                         d.basic_rate = rate
                 
@@ -162,7 +162,7 @@ class StockEntry(ParentStockEntry):
                     # Calculate basic_rate for scrap items if not already calculated
                     if reset_outgoing_rate and not d.basic_rate:
                         args = self.get_args_for_incoming_rate(d)
-                        rate = get_incoming_rate(args, raise_error_if_no_rate)
+                        rate = _get_incoming_rate(args, raise_error_if_no_rate)
                         if rate >= 0:
                             d.basic_rate = rate
                     
